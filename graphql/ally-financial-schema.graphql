@@ -1,0 +1,1303 @@
+"""
+Ally Financial GraphQL Schema
+Conceptual schema modeling banking, investing, auto finance, and identity domains.
+"""
+
+# ─── Scalars ────────────────────────────────────────────────────────────────
+
+scalar Date
+scalar DateTime
+scalar Decimal
+scalar JSON
+
+# ─── Enums ──────────────────────────────────────────────────────────────────
+
+enum AccountStatus {
+  ACTIVE
+  INACTIVE
+  CLOSED
+  PENDING
+  FROZEN
+}
+
+enum TransactionType {
+  DEBIT
+  CREDIT
+  TRANSFER
+  PAYMENT
+  FEE
+  INTEREST
+  DIVIDEND
+  DEPOSIT
+  WITHDRAWAL
+}
+
+enum TransactionStatus {
+  PENDING
+  POSTED
+  CANCELLED
+  RETURNED
+}
+
+enum PaymentStatus {
+  SCHEDULED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum LoanStatus {
+  CURRENT
+  DELINQUENT
+  PAID_OFF
+  CHARGED_OFF
+  IN_DEFAULT
+}
+
+enum CardStatus {
+  ACTIVE
+  BLOCKED
+  CANCELLED
+  EXPIRED
+}
+
+enum WebhookEvent {
+  TRANSACTION_POSTED
+  PAYMENT_COMPLETED
+  PAYMENT_FAILED
+  TRANSFER_COMPLETED
+  BALANCE_UPDATED
+  STATEMENT_AVAILABLE
+  DOCUMENT_AVAILABLE
+}
+
+enum DocumentType {
+  MONTHLY_STATEMENT
+  ANNUAL_STATEMENT
+  TAX_1099_INT
+  TAX_1099_DIV
+  TAX_1099_B
+  TAX_1098
+  CONFIRMATION
+}
+
+enum AddressType {
+  PRIMARY
+  MAILING
+  WORK
+  PREVIOUS
+}
+
+enum ContactType {
+  EMAIL
+  PHONE_HOME
+  PHONE_MOBILE
+  PHONE_WORK
+  FAX
+}
+
+enum RateType {
+  SAVINGS
+  CD
+  MONEY_MARKET
+  IRA
+  AUTO_LOAN
+  MORTGAGE_30_YEAR
+  MORTGAGE_15_YEAR
+  HOME_EQUITY
+  PERSONAL_LOAN
+}
+
+enum DealerProgramType {
+  FLOOR_PLAN
+  REMARKETING
+  DEALER_DIRECT
+  MANUFACTURER_INCENTIVE
+}
+
+# ─── Banking: Deposit Accounts ───────────────────────────────────────────────
+
+"""
+Base type for all Ally Financial bank accounts.
+"""
+type BankAccount {
+  id: ID!
+  accountNumber: String!
+  routingNumber: String!
+  status: AccountStatus!
+  openedDate: Date!
+  closedDate: Date
+  nickname: String
+  balance: AccountBalance!
+  availableBalance: AvailableBalance!
+  transactions(limit: Int, offset: Int, startDate: Date, endDate: Date): TransactionHistory!
+  statements: [Statement!]!
+  taxDocuments: [TaxDocument!]!
+  customer: BankCustomer!
+}
+
+"""
+Ally Interest Checking or basic checking account.
+"""
+type CheckingAccount {
+  id: ID!
+  accountNumber: String!
+  routingNumber: String!
+  status: AccountStatus!
+  openedDate: Date!
+  closedDate: Date
+  nickname: String
+  balance: AccountBalance!
+  availableBalance: AvailableBalance!
+  apy: APY!
+  overdraftProtection: OverdraftProtection
+  debitCard: DebitCard
+  transactions(limit: Int, offset: Int, startDate: Date, endDate: Date): TransactionHistory!
+  directDeposit: DirectDeposit
+  statements: [Statement!]!
+  customer: BankCustomer!
+}
+
+"""
+Ally Online Savings Account with high-yield APY.
+"""
+type SavingsAccount {
+  id: ID!
+  accountNumber: String!
+  routingNumber: String!
+  status: AccountStatus!
+  openedDate: Date!
+  closedDate: Date
+  nickname: String
+  balance: AccountBalance!
+  availableBalance: AvailableBalance!
+  apy: APY!
+  interestEarnedYTD: Decimal!
+  interestRate: Rate!
+  transactions(limit: Int, offset: Int, startDate: Date, endDate: Date): TransactionHistory!
+  statements: [Statement!]!
+  taxDocuments: [TaxDocument!]!
+  customer: BankCustomer!
+}
+
+"""
+Ally Money Market Account offering check-writing and higher yields.
+"""
+type MoneyMarketAccount {
+  id: ID!
+  accountNumber: String!
+  routingNumber: String!
+  status: AccountStatus!
+  openedDate: Date!
+  closedDate: Date
+  nickname: String
+  balance: AccountBalance!
+  availableBalance: AvailableBalance!
+  apy: APY!
+  minimumBalance: Decimal!
+  interestRate: Rate!
+  checkWritingEnabled: Boolean!
+  debitCard: DebitCard
+  transactions(limit: Int, offset: Int, startDate: Date, endDate: Date): TransactionHistory!
+  statements: [Statement!]!
+  taxDocuments: [TaxDocument!]!
+  customer: BankCustomer!
+}
+
+"""
+Ally Certificate of Deposit (CD) with fixed terms and rates.
+"""
+type CertificateOfDeposit {
+  id: ID!
+  accountNumber: String!
+  routingNumber: String!
+  status: AccountStatus!
+  openedDate: Date!
+  maturityDate: Date!
+  termMonths: Int!
+  principal: Decimal!
+  apy: APY!
+  interestRate: Rate!
+  interestEarned: Decimal!
+  penaltyForEarlyWithdrawal: Decimal!
+  autoRenew: Boolean!
+  renewalNoticeSentDate: Date
+  taxDocuments: [TaxDocument!]!
+  customer: BankCustomer!
+}
+
+"""
+Ally IRA (Traditional, Roth, or SEP) account.
+"""
+type IRAAccount {
+  id: ID!
+  accountNumber: String!
+  routingNumber: String!
+  iraType: String!
+  status: AccountStatus!
+  openedDate: Date!
+  balance: AccountBalance!
+  apy: APY!
+  contributionYTD: Decimal!
+  contributionLimit: Decimal!
+  taxDocuments: [TaxDocument!]!
+  customer: BankCustomer!
+}
+
+# ─── Investment Accounts ─────────────────────────────────────────────────────
+
+"""
+Ally Invest self-directed or managed investment account.
+"""
+type InvestmentAccount {
+  id: ID!
+  accountNumber: String!
+  accountType: String!
+  status: AccountStatus!
+  openedDate: Date!
+  totalValue: Decimal!
+  cashBalance: Decimal!
+  dayChangeAmount: Decimal!
+  dayChangePercent: Decimal!
+  holdings: [Holding!]!
+  positions: [Position!]!
+  transactions(limit: Int, offset: Int, startDate: Date, endDate: Date): TransactionHistory!
+  statements: [Statement!]!
+  taxDocuments: [TaxDocument!]!
+  customer: BankCustomer!
+}
+
+"""
+Ally Invest brokerage account for self-directed trading.
+"""
+type BrokerageAccount {
+  id: ID!
+  accountNumber: String!
+  status: AccountStatus!
+  openedDate: Date!
+  marginEnabled: Boolean!
+  optionsLevel: Int!
+  totalValue: Decimal!
+  cashBalance: Decimal!
+  marginBalance: Decimal
+  buyingPower: Decimal!
+  holdings: [Holding!]!
+  positions: [Position!]!
+  transactions(limit: Int, offset: Int, startDate: Date, endDate: Date): TransactionHistory!
+  statements: [Statement!]!
+  taxDocuments: [TaxDocument!]!
+  customer: BankCustomer!
+}
+
+"""
+A security or fund held in an investment or brokerage account.
+"""
+type Holding {
+  id: ID!
+  symbol: String!
+  description: String!
+  quantity: Decimal!
+  costBasis: Decimal!
+  currentPrice: Decimal!
+  currentValue: Decimal!
+  unrealizedGainLoss: Decimal!
+  unrealizedGainLossPercent: Decimal!
+  assetClass: String!
+}
+
+"""
+An open position in a brokerage account.
+"""
+type Position {
+  id: ID!
+  symbol: String!
+  description: String!
+  quantity: Decimal!
+  averageCost: Decimal!
+  marketValue: Decimal!
+  openDate: Date!
+  longShort: String!
+}
+
+# ─── Lending ─────────────────────────────────────────────────────────────────
+
+"""
+Ally auto loan for vehicle purchase or refinance.
+"""
+type AutoLoan {
+  id: ID!
+  loanNumber: String!
+  status: LoanStatus!
+  originalAmount: Decimal!
+  currentBalance: Decimal!
+  interestRate: APR!
+  termMonths: Int!
+  monthlyPayment: Decimal!
+  nextPaymentDate: Date!
+  nextPaymentAmount: Decimal!
+  payoffAmount: Decimal!
+  payoffGoodThrough: Date!
+  vehicleVIN: String!
+  vehicleYear: Int!
+  vehicleMake: String!
+  vehicleModel: String!
+  vehicleTrim: String
+  payments: [PaymentRecord!]!
+  autoPayment: AutoPayment
+  customer: BankCustomer!
+}
+
+"""
+Ally personal loan.
+"""
+type PersonalLoan {
+  id: ID!
+  loanNumber: String!
+  status: LoanStatus!
+  originalAmount: Decimal!
+  currentBalance: Decimal!
+  interestRate: APR!
+  termMonths: Int!
+  monthlyPayment: Decimal!
+  nextPaymentDate: Date!
+  nextPaymentAmount: Decimal!
+  payoffAmount: Decimal!
+  disbursementDate: Date!
+  payments: [PaymentRecord!]!
+  autoPayment: AutoPayment
+  customer: BankCustomer!
+}
+
+"""
+Ally Home mortgage loan.
+"""
+type Mortgage {
+  id: ID!
+  loanNumber: String!
+  status: LoanStatus!
+  originalAmount: Decimal!
+  currentBalance: Decimal!
+  interestRate: APR!
+  loanType: String!
+  termMonths: Int!
+  monthlyPayment: Decimal!
+  principalAndInterest: Decimal!
+  escrowPayment: Decimal!
+  nextPaymentDate: Date!
+  maturityDate: Date!
+  propertyAddress: Address!
+  payments: [PaymentRecord!]!
+  taxDocuments: [TaxDocument!]!
+  autoPayment: AutoPayment
+  customer: BankCustomer!
+}
+
+"""
+Ally Home Equity Loan (fixed-rate lump sum).
+"""
+type HomeEquityLoan {
+  id: ID!
+  loanNumber: String!
+  status: LoanStatus!
+  originalAmount: Decimal!
+  currentBalance: Decimal!
+  interestRate: APR!
+  termMonths: Int!
+  monthlyPayment: Decimal!
+  nextPaymentDate: Date!
+  propertyAddress: Address!
+  payments: [PaymentRecord!]!
+  customer: BankCustomer!
+}
+
+"""
+Ally Home Equity Line of Credit (variable revolving line).
+"""
+type HomeEquityLineOfCredit {
+  id: ID!
+  loanNumber: String!
+  status: LoanStatus!
+  creditLimit: Decimal!
+  currentBalance: Decimal!
+  availableCredit: Decimal!
+  interestRate: APR!
+  drawPeriodEndDate: Date!
+  repaymentPeriodEndDate: Date!
+  minimumPayment: Decimal!
+  nextPaymentDate: Date!
+  propertyAddress: Address!
+  transactions(limit: Int, offset: Int): TransactionHistory!
+  customer: BankCustomer!
+}
+
+# ─── Balances ────────────────────────────────────────────────────────────────
+
+"""
+Current ledger balance of an account.
+"""
+type AccountBalance {
+  amount: Decimal!
+  currency: String!
+  asOf: DateTime!
+}
+
+"""
+Available (spendable) balance after pending transactions.
+"""
+type AvailableBalance {
+  amount: Decimal!
+  currency: String!
+  pendingAmount: Decimal!
+  asOf: DateTime!
+}
+
+"""
+Ledger balance representing posted transactions only.
+"""
+type LedgerBalance {
+  amount: Decimal!
+  currency: String!
+  asOf: DateTime!
+}
+
+# ─── Transactions ─────────────────────────────────────────────────────────────
+
+"""
+Paginated list of transactions for an account.
+"""
+type TransactionHistory {
+  transactions: [Transaction!]!
+  totalCount: Int!
+  pageInfo: PageInfo!
+}
+
+"""
+A single financial transaction on an account.
+"""
+type Transaction {
+  id: ID!
+  type: TransactionType!
+  status: TransactionStatus!
+  amount: Decimal!
+  currency: String!
+  description: String!
+  memo: String
+  postedDate: Date
+  transactionDate: Date!
+  runningBalance: Decimal
+  merchant: Merchant
+  category: String
+  checkNumber: String
+  referenceNumber: String
+}
+
+"""
+Merchant details associated with a card transaction.
+"""
+type Merchant {
+  name: String!
+  category: String
+  categoryCode: String
+  city: String
+  state: String
+  country: String
+  postalCode: String
+}
+
+# ─── Payments and Transfers ──────────────────────────────────────────────────
+
+"""
+A scheduled or completed bill payment.
+"""
+type Payment {
+  id: ID!
+  status: PaymentStatus!
+  amount: Decimal!
+  currency: String!
+  scheduledDate: Date!
+  processedDate: Date
+  memo: String
+  payeeId: String!
+  payeeName: String!
+  fromAccountId: String!
+  confirmationNumber: String
+}
+
+"""
+An internal or external account transfer.
+"""
+type Transfer {
+  id: ID!
+  status: PaymentStatus!
+  amount: Decimal!
+  currency: String!
+  scheduledDate: Date!
+  processedDate: Date
+  memo: String
+  fromAccountId: String!
+  toAccountId: String!
+  confirmationNumber: String
+  recurring: Boolean!
+  frequency: String
+}
+
+"""
+An ACH (Automated Clearing House) transfer.
+"""
+type ACHTransfer {
+  id: ID!
+  status: PaymentStatus!
+  amount: Decimal!
+  currency: String!
+  direction: String!
+  scheduledDate: Date!
+  processedDate: Date
+  settlementDate: Date
+  traceNumber: String
+  fromAccountId: String!
+  toExternalAccountId: String!
+  memo: String
+}
+
+"""
+A domestic or international wire transfer.
+"""
+type WireTransfer {
+  id: ID!
+  status: PaymentStatus!
+  amount: Decimal!
+  currency: String!
+  initiatedDate: DateTime!
+  processedDate: DateTime
+  fromAccountId: String!
+  beneficiaryName: String!
+  beneficiaryRoutingNumber: String!
+  beneficiaryAccountNumber: String!
+  beneficiaryBankName: String
+  memo: String
+  feeAmount: Decimal!
+  confirmationNumber: String
+}
+
+"""
+A Zelle peer-to-peer payment.
+"""
+type ZelleTransfer {
+  id: ID!
+  status: PaymentStatus!
+  amount: Decimal!
+  currency: String!
+  direction: String!
+  initiatedDate: DateTime!
+  processedDate: DateTime
+  recipientToken: String!
+  recipientName: String!
+  memo: String
+  confirmationNumber: String
+}
+
+"""
+Direct deposit configuration for a checking account.
+"""
+type DirectDeposit {
+  accountId: ID!
+  routingNumber: String!
+  accountNumber: String!
+  accountType: String!
+  lastDepositDate: Date
+  lastDepositAmount: Decimal
+  preNoteStatus: String
+}
+
+# ─── Overdraft Protection ─────────────────────────────────────────────────────
+
+"""
+Overdraft protection settings linked to a checking account.
+"""
+type OverdraftProtection {
+  id: ID!
+  enabled: Boolean!
+  linkedAccountId: String!
+  transferFee: Decimal!
+  minimumTransferAmount: Decimal!
+  maximumTransferAmount: Decimal!
+}
+
+"""
+An automatic transfer triggered by overdraft protection.
+"""
+type OverdraftTransfer {
+  id: ID!
+  amount: Decimal!
+  transferDate: DateTime!
+  fromAccountId: String!
+  toAccountId: String!
+  feeCharged: Decimal!
+  status: PaymentStatus!
+}
+
+# ─── Cards and ATMs ──────────────────────────────────────────────────────────
+
+"""
+Base card type for debit and credit cards.
+"""
+type Card {
+  id: ID!
+  lastFour: String!
+  status: CardStatus!
+  issuedDate: Date!
+  expirationDate: Date!
+  nameOnCard: String!
+  network: String!
+  linkedAccountId: String!
+}
+
+"""
+Ally debit card linked to a checking or money market account.
+"""
+type DebitCard {
+  id: ID!
+  lastFour: String!
+  status: CardStatus!
+  issuedDate: Date!
+  expirationDate: Date!
+  nameOnCard: String!
+  network: String!
+  linkedAccountId: String!
+  atmFeeReimbursementEnabled: Boolean!
+  dailyPurchaseLimit: Decimal!
+  dailyATMWithdrawalLimit: Decimal!
+  contactlessEnabled: Boolean!
+}
+
+"""
+Ally credit card (if applicable to product lineup).
+"""
+type CreditCard {
+  id: ID!
+  lastFour: String!
+  status: CardStatus!
+  issuedDate: Date!
+  expirationDate: Date!
+  nameOnCard: String!
+  network: String!
+  creditLimit: Decimal!
+  currentBalance: Decimal!
+  availableCredit: Decimal!
+  minimumPaymentDue: Decimal!
+  paymentDueDate: Date!
+  apr: APR!
+  rewardsBalance: Decimal
+}
+
+"""
+An Ally ATM or partner ATM location.
+"""
+type ATMLocation {
+  id: ID!
+  name: String!
+  address: Address!
+  latitude: Decimal!
+  longitude: Decimal!
+  isAllyATM: Boolean!
+  isSurchargeFreeTier: Boolean!
+  hours: String
+  services: [String!]!
+  accessibilityFeatures: [String!]!
+}
+
+"""
+Ally or affiliated branch location.
+"""
+type Branch {
+  id: ID!
+  name: String!
+  address: Address!
+  latitude: Decimal!
+  longitude: Decimal!
+  phone: String!
+  hours: JSON
+  services: [String!]!
+}
+
+# ─── Rates ───────────────────────────────────────────────────────────────────
+
+"""
+Current interest rate for a product type.
+"""
+type Rate {
+  id: ID!
+  rateType: RateType!
+  rate: Decimal!
+  asOf: DateTime!
+  termMonths: Int
+  minimumBalance: Decimal
+  productName: String!
+}
+
+"""
+Historical rate data point for a product.
+"""
+type HistoricalRate {
+  rateType: RateType!
+  rate: Decimal!
+  effectiveDate: Date!
+  productName: String!
+}
+
+"""
+Annual Percentage Yield for a deposit product.
+"""
+type APY {
+  value: Decimal!
+  asOf: DateTime!
+  termMonths: Int
+  minimumBalance: Decimal
+}
+
+"""
+Annual Percentage Rate for a lending product.
+"""
+type APR {
+  value: Decimal!
+  asOf: DateTime!
+  isFixed: Boolean!
+  rateFloor: Decimal
+  rateCeiling: Decimal
+  index: String
+  margin: Decimal
+}
+
+# ─── Quotes ──────────────────────────────────────────────────────────────────
+
+"""
+A rate or product quote returned to a customer.
+"""
+type Quote {
+  id: ID!
+  quoteType: String!
+  amount: Decimal!
+  termMonths: Int!
+  rate: Decimal!
+  monthlyPayment: Decimal!
+  expiresAt: DateTime!
+  createdAt: DateTime!
+}
+
+"""
+An auto finance rate quote for a vehicle purchase or refinance.
+"""
+type AutoFinanceQuote {
+  id: ID!
+  vehicleYear: Int!
+  vehicleMake: String!
+  vehicleModel: String!
+  vehicleTrim: String
+  vehicleVIN: String
+  vehicleCondition: String!
+  purchasePrice: Decimal!
+  downPayment: Decimal!
+  loanAmount: Decimal!
+  termMonths: Int!
+  apr: APR!
+  monthlyPayment: Decimal!
+  expiresAt: DateTime!
+  createdAt: DateTime!
+}
+
+# ─── Auto Finance ─────────────────────────────────────────────────────────────
+
+"""
+Ally's auto finance program for dealer and consumer financing.
+"""
+type AutoFinance {
+  id: ID!
+  programType: String!
+  dealerCount: Int!
+  managedVolume: Decimal!
+  activeDeals: Int!
+}
+
+"""
+A car dealership enrolled in Ally's dealer finance programs.
+"""
+type CarDealership {
+  id: ID!
+  dealerCode: String!
+  name: String!
+  address: Address!
+  phone: String!
+  primaryContact: Contact!
+  franchises: [String!]!
+  enrolledPrograms: [DealerProgramType!]!
+  floorPlan: FloorPlanCredit
+  portfolio: CustomerPortfolio
+  salesPrograms: [DealerSalesProgram!]!
+  status: AccountStatus!
+}
+
+"""
+A dealer sales and incentive program offered through Ally.
+"""
+type DealerSalesProgram {
+  id: ID!
+  programName: String!
+  programType: DealerProgramType!
+  effectiveDate: Date!
+  expirationDate: Date
+  incentiveAmount: Decimal
+  rateSubvention: Decimal
+  eligibleMakes: [String!]!
+  eligibleModels: [String!]
+  description: String
+}
+
+"""
+Floor plan financing for dealer vehicle inventory.
+"""
+type FloorPlanCredit {
+  id: ID!
+  dealerCode: String!
+  creditLimit: Decimal!
+  currentBalance: Decimal!
+  availableCredit: Decimal!
+  interestRate: APR!
+  curtailmentSchedule: JSON
+  floatedUnits: Int!
+  averageDaysFloor: Int!
+  lineStatus: AccountStatus!
+}
+
+"""
+Vehicle remarketing services and auction channel management.
+"""
+type Remarketing {
+  id: ID!
+  dealerCode: String!
+  totalUnitsListed: Int!
+  totalUnitsSold: Int!
+  averageSalePriceVariance: Decimal!
+  preferredAuctionChannel: String
+  vehicleConditionGradeAverage: Decimal
+  activeListing: [RemarketingUnit!]!
+}
+
+"""
+A single vehicle unit listed for remarketing.
+"""
+type RemarketingUnit {
+  id: ID!
+  vin: String!
+  year: Int!
+  make: String!
+  model: String!
+  trim: String
+  mileage: Int!
+  conditionGrade: Decimal!
+  listPrice: Decimal!
+  channel: String!
+  listedDate: Date!
+  saleDate: Date
+  salePrice: Decimal
+}
+
+"""
+Portfolio of financed customers for a dealer.
+"""
+type CustomerPortfolio {
+  id: ID!
+  dealerCode: String!
+  totalContracts: Int!
+  totalOutstandingBalance: Decimal!
+  averageCreditScore: Int
+  delinquencyRate: Decimal!
+  currentPeriodOriginations: Int!
+  currentPeriodVolume: Decimal!
+}
+
+# ─── Manufacturer Programs ────────────────────────────────────────────────────
+
+"""
+Ford Motor Credit program details through Ally.
+"""
+type FordCredit {
+  id: ID!
+  programCode: String!
+  programName: String!
+  effectiveDate: Date!
+  expirationDate: Date
+  rateSubvention: Decimal
+  cashIncentive: Decimal
+  eligibleModels: [String!]!
+  termOptions: [Int!]!
+}
+
+"""
+GM Financial program details through Ally.
+"""
+type GMFinancial {
+  id: ID!
+  programCode: String!
+  programName: String!
+  effectiveDate: Date!
+  expirationDate: Date
+  rateSubvention: Decimal
+  cashIncentive: Decimal
+  eligibleMakes: [String!]!
+  eligibleModels: [String!]!
+  termOptions: [Int!]!
+}
+
+"""
+Chrysler Capital program details through Ally.
+"""
+type ChryslerCapital {
+  id: ID!
+  programCode: String!
+  programName: String!
+  effectiveDate: Date!
+  expirationDate: Date
+  rateSubvention: Decimal
+  cashIncentive: Decimal
+  eligibleMakes: [String!]!
+  eligibleModels: [String!]!
+  termOptions: [Int!]!
+}
+
+# ─── Tax and Fee Records ──────────────────────────────────────────────────────
+
+"""
+Sales tax details applied to a transaction or financed amount.
+"""
+type SalesTax {
+  state: String!
+  countyOrCity: String
+  taxRate: Decimal!
+  taxAmount: Decimal!
+  taxableAmount: Decimal!
+  effectiveDate: Date!
+}
+
+"""
+A record of a loan or credit payment made.
+"""
+type PaymentRecord {
+  id: ID!
+  paymentDate: Date!
+  amount: Decimal!
+  principalAmount: Decimal!
+  interestAmount: Decimal!
+  escrowAmount: Decimal
+  feeAmount: Decimal
+  status: PaymentStatus!
+  paymentMethod: String!
+  confirmationNumber: String
+}
+
+"""
+Automatic payment configuration for a loan account.
+"""
+type AutoPayment {
+  id: ID!
+  loanId: String!
+  enabled: Boolean!
+  paymentAmount: Decimal!
+  paymentDay: Int!
+  fundingAccountId: String!
+  nextScheduledDate: Date!
+  enrolledDate: Date!
+}
+
+# ─── Customers and Identity ───────────────────────────────────────────────────
+
+"""
+An individual banking customer of Ally Financial.
+"""
+type BankCustomer {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  dateOfBirth: Date!
+  ssn: String
+  profile: Profile!
+  addresses: [Address!]!
+  contacts: [Contact!]!
+  accounts: [BankAccount!]!
+  memberSince: Date!
+  preferredLanguage: String!
+}
+
+"""
+A business or commercial customer of Ally Financial.
+"""
+type BusinessCustomer {
+  id: ID!
+  legalName: String!
+  dba: String
+  ein: String
+  entityType: String!
+  profile: Profile!
+  primaryAddress: Address!
+  contacts: [Contact!]!
+  primaryContact: BankCustomer!
+  accounts: [BankAccount!]!
+  memberSince: Date!
+}
+
+"""
+Profile details for a customer or business entity.
+"""
+type Profile {
+  id: ID!
+  username: String!
+  email: String!
+  phoneNumber: String!
+  paperlessEnabled: Boolean!
+  marketingOptIn: Boolean!
+  twoFactorEnabled: Boolean!
+  lastLoginAt: DateTime
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"""
+A physical or mailing address.
+"""
+type Address {
+  id: ID!
+  type: AddressType!
+  line1: String!
+  line2: String
+  city: String!
+  state: String!
+  postalCode: String!
+  country: String!
+  isPrimary: Boolean!
+  verifiedAt: DateTime
+}
+
+"""
+A contact method (email, phone) for a customer.
+"""
+type Contact {
+  id: ID!
+  type: ContactType!
+  value: String!
+  isPrimary: Boolean!
+  verifiedAt: DateTime
+}
+
+"""
+An Ally developer partner or third-party integration entity.
+"""
+type Partner {
+  id: ID!
+  partnerName: String!
+  partnerCode: String!
+  contactEmail: String!
+  status: AccountStatus!
+  enrolledDate: Date!
+  scopes: [String!]!
+}
+
+# ─── API Platform ─────────────────────────────────────────────────────────────
+
+"""
+An API key credential for accessing Ally developer APIs.
+"""
+type APIKey {
+  id: ID!
+  name: String!
+  keyPrefix: String!
+  status: AccountStatus!
+  scopes: [String!]!
+  createdAt: DateTime!
+  expiresAt: DateTime
+  lastUsedAt: DateTime
+}
+
+"""
+An OAuth bearer token for authenticated API sessions.
+"""
+type Token {
+  accessToken: String!
+  tokenType: String!
+  expiresIn: Int!
+  scope: String!
+  refreshToken: String
+  issuedAt: DateTime!
+}
+
+"""
+An OAuth client application registered with Ally's developer platform.
+"""
+type OAuthClient {
+  id: ID!
+  clientId: String!
+  name: String!
+  redirectUris: [String!]!
+  grantTypes: [String!]!
+  scopes: [String!]!
+  status: AccountStatus!
+  createdAt: DateTime!
+}
+
+"""
+A webhook subscription for receiving event notifications.
+"""
+type Webhook {
+  id: ID!
+  url: String!
+  events: [WebhookEvent!]!
+  status: AccountStatus!
+  signingSecret: String!
+  createdAt: DateTime!
+  lastTriggeredAt: DateTime
+  deliverySuccessRate: Decimal
+}
+
+# ─── Documents ────────────────────────────────────────────────────────────────
+
+"""
+A monthly or annual account statement.
+"""
+type Statement {
+  id: ID!
+  accountId: String!
+  statementDate: Date!
+  periodStart: Date!
+  periodEnd: Date!
+  documentType: DocumentType!
+  downloadUrl: String!
+  generatedAt: DateTime!
+}
+
+"""
+A tax document (1099-INT, 1099-DIV, 1098, etc.) for an account.
+"""
+type TaxDocument {
+  id: ID!
+  accountId: String!
+  taxYear: Int!
+  documentType: DocumentType!
+  downloadUrl: String!
+  generatedAt: DateTime!
+}
+
+# ─── Pagination ───────────────────────────────────────────────────────────────
+
+"""
+Pagination cursor information for list results.
+"""
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+  totalCount: Int!
+}
+
+# ─── Root Types ───────────────────────────────────────────────────────────────
+
+type Query {
+  # Deposit accounts
+  checkingAccount(id: ID!): CheckingAccount
+  savingsAccount(id: ID!): SavingsAccount
+  moneyMarketAccount(id: ID!): MoneyMarketAccount
+  certificateOfDeposit(id: ID!): CertificateOfDeposit
+  iraAccount(id: ID!): IRAAccount
+
+  # Investment accounts
+  investmentAccount(id: ID!): InvestmentAccount
+  brokerageAccount(id: ID!): BrokerageAccount
+
+  # Lending
+  autoLoan(id: ID!): AutoLoan
+  personalLoan(id: ID!): PersonalLoan
+  mortgage(id: ID!): Mortgage
+  homeEquityLoan(id: ID!): HomeEquityLoan
+  homeEquityLineOfCredit(id: ID!): HomeEquityLineOfCredit
+
+  # Transfers and payments
+  payment(id: ID!): Payment
+  transfer(id: ID!): Transfer
+  achTransfer(id: ID!): ACHTransfer
+  wireTransfer(id: ID!): WireTransfer
+  zelleTransfer(id: ID!): ZelleTransfer
+
+  # Cards and locations
+  debitCard(id: ID!): DebitCard
+  creditCard(id: ID!): CreditCard
+  atmLocations(latitude: Decimal!, longitude: Decimal!, radiusMiles: Int): [ATMLocation!]!
+  branches(latitude: Decimal!, longitude: Decimal!, radiusMiles: Int): [Branch!]!
+
+  # Rates
+  currentRates: [Rate!]!
+  historicalRates(rateType: RateType!, startDate: Date!, endDate: Date!): [HistoricalRate!]!
+
+  # Quotes
+  autoFinanceQuote(id: ID!): AutoFinanceQuote
+
+  # Auto finance (dealer)
+  carDealership(dealerCode: String!): CarDealership
+  floorPlanCredit(dealerCode: String!): FloorPlanCredit
+  remarketing(dealerCode: String!): Remarketing
+  customerPortfolio(dealerCode: String!): CustomerPortfolio
+
+  # Customers
+  bankCustomer(id: ID!): BankCustomer
+  businessCustomer(id: ID!): BusinessCustomer
+
+  # API platform
+  apiKeys: [APIKey!]!
+  webhooks: [Webhook!]!
+  oauthClients: [OAuthClient!]!
+
+  # Documents
+  statements(accountId: ID!): [Statement!]!
+  taxDocuments(accountId: ID!, taxYear: Int): [TaxDocument!]!
+}
+
+type Mutation {
+  # Transfers and payments
+  createTransfer(fromAccountId: ID!, toAccountId: ID!, amount: Decimal!, scheduledDate: Date, memo: String): Transfer!
+  createACHTransfer(fromAccountId: ID!, toExternalAccountId: ID!, amount: Decimal!, direction: String!, memo: String): ACHTransfer!
+  createWireTransfer(fromAccountId: ID!, beneficiaryName: String!, beneficiaryRoutingNumber: String!, beneficiaryAccountNumber: String!, amount: Decimal!, memo: String): WireTransfer!
+  createZelleTransfer(fromAccountId: ID!, recipientToken: String!, amount: Decimal!, memo: String): ZelleTransfer!
+  schedulePayment(fromAccountId: ID!, payeeId: ID!, amount: Decimal!, scheduledDate: Date!, memo: String): Payment!
+  cancelPayment(paymentId: ID!): Payment!
+
+  # Overdraft protection
+  enrollOverdraftProtection(checkingAccountId: ID!, linkedAccountId: ID!): OverdraftProtection!
+  unenrollOverdraftProtection(id: ID!): OverdraftProtection!
+
+  # Cards
+  lockCard(cardId: ID!): DebitCard!
+  unlockCard(cardId: ID!): DebitCard!
+  reportCardLost(cardId: ID!): DebitCard!
+  requestReplacementCard(cardId: ID!): DebitCard!
+
+  # Auto payment
+  enrollAutoPayment(loanId: ID!, fundingAccountId: ID!, paymentAmount: Decimal!, paymentDay: Int!): AutoPayment!
+  cancelAutoPayment(id: ID!): AutoPayment!
+
+  # API platform
+  createAPIKey(name: String!, scopes: [String!]!): APIKey!
+  revokeAPIKey(id: ID!): APIKey!
+  createWebhook(url: String!, events: [WebhookEvent!]!): Webhook!
+  updateWebhook(id: ID!, url: String, events: [WebhookEvent!], status: AccountStatus): Webhook!
+  deleteWebhook(id: ID!): Webhook!
+
+  # Profile
+  updateProfile(email: String, phoneNumber: String, paperlessEnabled: Boolean, marketingOptIn: Boolean): Profile!
+  updateAddress(id: ID!, line1: String, line2: String, city: String, state: String, postalCode: String): Address!
+}
+
+type Subscription {
+  transactionPosted(accountId: ID!): Transaction!
+  paymentStatusChanged(paymentId: ID!): Payment!
+  transferStatusChanged(transferId: ID!): Transfer!
+  balanceUpdated(accountId: ID!): AccountBalance!
+  documentAvailable(accountId: ID!): Statement!
+}

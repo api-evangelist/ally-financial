@@ -1,0 +1,89 @@
+reviewer: API Evangelist
+date: '2026-07-23'
+provider: Ally Financial
+slug: ally-financial
+primary_domain: ally.com
+tier: super-regional
+summary: >-
+  Ally Financial does not operate a live, self-serve first-party public
+  developer portal for its consumer banking, lending, or auto-finance products.
+  Programmatic access to Ally Bank account and transaction data is delivered
+  through third-party open-finance aggregators. The legacy Ally Invest
+  brokerage REST API (from the 2016 TradeKing acquisition) has effectively been
+  retired. This repo is represented honestly with two apis[] entries: a
+  conceptual company-domain model (GraphQL) and the retired Ally Invest API
+  (humanURL-only). No fabricated specifications were added.
+developer_portal:
+  status: none-live
+  probed:
+  - url: https://developer.ally.com/
+    result: >-
+      Resolves to a Pantheon-hosted origin whose TLS certificate does not match
+      the hostname (cert altnames are *.pantheonsite.io / getpantheon.com); no
+      developer content served. Treated as parked/misconfigured, not a live
+      portal.
+  - url: https://www.ally.com/api/invest/documentation/getting-started/
+    http_status: 200
+    result: >-
+      Returns Ally Invest marketing content (automated investing, self-directed
+      trading, personal advice), not technical API reference - effectively a
+      soft-404 for the former developer docs.
+  - url: https://www.ally.com/api/invest/documentation/oauth/
+    http_status: 200
+    result: Soft-404 / marketing content; no OAuth technical documentation served.
+  - url: https://www.ally.com/api/
+    http_status: 404
+  - url: https://api.ally.com/
+    result: Host resolves (34.237.118.116) but is not a documented public API surface.
+  - url: https://www.ally.com/
+    http_status: 200
+    result: Live corporate/banking website.
+first_party_apis:
+- name: Ally Invest API (legacy / retired)
+  status: retired
+  auth: OAuth 1.0a (consumer key/secret + oauth token/secret)
+  formats: JSON and XML; order entry via FIXML
+  base_urls:
+  - https://devapi.invest.ally.com/v1
+  - https://api.tradeking.com/v1 (pre-rebrand TradeKing origin)
+  resource_groups:
+  - Accounts (balances, history, holdings)
+  - Orders / Trading (preview, submit via FIXML)
+  - Market data (quotes, clock, timesales, toplists, options, news)
+  - Member (profile)
+  - Watchlists
+  - Utility (status, version)
+  provenance: >-
+    Resource groups, base URLs, and OAuth model corroborated from historical
+    documentation references and independent community SDK wrappers
+    (github.com/jmal1997/ally-api, pyally, ally-invest-api). Ally publishes no
+    downloadable OpenAPI/Swagger. Listed humanURL-only.
+downloadable_specs:
+  openapi: none
+  swagger: none
+  postman: none
+  note: >-
+    No first-party OpenAPI/Swagger/Postman collection is publicly downloadable
+    from Ally. No specs were harvested; none were fabricated.
+open_finance_posture:
+  model: aggregator-only
+  aggregators_documented:
+  - Plaid
+  - Flinks
+  fdx_participation: not documented / not confirmed
+  akoya: not confirmed on Akoya Data Access Network in available sources
+  cfpb_1033: >-
+    No published first-party 1033 developer interface found; consumer data
+    rights currently satisfied via aggregator connections. US open finance
+    remains fragmented with no single mandated contract.
+  source: openbankingtracker.com (Ally Bank provider profile)
+github_organization:
+  url: https://github.com/Ally-Financial
+  note: >-
+    10 public repos, all internal engineering / OSS mirrors (soda, nifi,
+    abc-doc, xstate, langchainjs, etc.). No API specifications or public API
+    documentation published here.
+spec_provenance: >-
+  No OpenAPI/Swagger harvested (none exist publicly). GraphQL artifact in
+  graphql/ is an explicitly conceptual, derived domain model, not a scrape of a
+  live Ally API.

@@ -1,0 +1,102 @@
+aid: ally-financial
+url: https://raw.githubusercontent.com/api-evangelist/ally-financial/refs/heads/main/apis.yml
+name: Ally Financial
+kind: company
+type: Index
+description: >-
+  Ally Financial (NYSE: ALLY) is a US super-regional, all-digital bank holding
+  company and one of the country's largest auto finance providers, offering
+  online deposit accounts, auto and personal lending, mortgages, credit cards,
+  and self-directed and robo brokerage through Ally Invest. Ally does not
+  operate a live, self-serve first-party public developer portal for its
+  consumer banking products. Programmatic access to Ally Bank account and
+  transaction data is delivered through third-party open-finance aggregators
+  (Plaid and Flinks are documented), and the legacy Ally Invest brokerage REST
+  API (inherited from the 2016 TradeKing acquisition) has effectively been
+  retired as Ally Invest shifted toward managed and robo portfolios.
+accessModel:
+  pricing: unknown
+  onboarding: unknown
+  trial: false
+  try_now: false
+  public: false
+  label: No public self-serve API - aggregator-only consumer data access
+  confidence: low
+  source: []
+  generated: '2026-07-23'
+  method: derived
+image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/icons/ally-financial.png
+tags:
+- Banking
+- Auto Finance
+- Investing
+- Lending
+- Open Finance
+- United States
+- Super-Regional Bank
+- Fortune 500
+created: '2026-05-05'
+modified: '2026-07-23'
+apis:
+- name: Ally Financial Platform (Conceptual Model)
+  description: >-
+    A conceptual, API-Evangelist-derived domain model of Ally Financial's
+    consumer platform spanning deposit accounts (checking, savings, money
+    market, CDs, IRAs), lending (auto, personal, mortgage, home equity),
+    self-directed and managed investing, and dealer/auto-finance services.
+    This is NOT a live, published public API - Ally exposes no self-serve
+    first-party developer portal for these products. The model is provided
+    for API design discussion, gateway/GraphQL modeling, and catalog
+    discoverability only; consumer data access in production is via
+    open-finance aggregators.
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://www.ally.com/
+  tags:
+  - Banking
+  - Auto Finance
+  - Investing
+  - Lending
+  - United States
+  - Conceptual
+  properties:
+  - type: GraphQL
+    url: graphql/ally-financial-graphql.md
+- name: Ally Invest API (Legacy / Retired)
+  description: >-
+    The legacy Ally Invest brokerage REST API, inherited from Ally's 2016
+    acquisition of TradeKing. It offered OAuth 1.0a authenticated access
+    (consumer key/secret plus OAuth token/secret) over documented resource
+    groups - Accounts (balances, history, holdings), Orders/Trading (preview
+    and submit via FIXML), Market data (quotes, clock, timesales, toplists,
+    options chains, news), Member profile, Watchlists, and Utility status -
+    returning JSON or XML. Ally Invest has since pivoted to managed and robo
+    portfolios; the developer registration and documentation pages now resolve
+    to marketing content, so this API is treated as retired and is listed
+    humanURL-only. No downloadable OpenAPI/Swagger is published by Ally.
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://www.ally.com/api/invest/documentation/getting-started/
+  baseURL: https://devapi.invest.ally.com/v1
+  tags:
+  - Investing
+  - Brokerage
+  - Trading
+  - Market Data
+  - OAuth 1.0a
+  - United States
+  - Legacy
+  - Retired
+  properties:
+  - type: Documentation
+    url: https://www.ally.com/api/invest/documentation/getting-started/
+common:
+- type: Website
+  url: https://www.ally.com/
+- type: DomainSecurity
+  url: security/ally-financial-domain-security.yml
+- type: GitHubOrganization
+  url: https://github.com/Ally-Financial
+- type: LinkedIn
+  url: https://www.linkedin.com/company/ally
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com
