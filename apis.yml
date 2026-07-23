@@ -97,6 +97,54 @@ common:
   url: https://github.com/Ally-Financial
 - type: LinkedIn
   url: https://www.linkedin.com/company/ally
+- type: Features
+  data:
+    - name: Open Banking Data Sharing
+      description: >-
+        Ally Financial participates in open banking through data sharing agreements
+        with fintech aggregators, supporting consumer-permissioned access to account
+        data per FDX and Dodd-Frank Section 1033 standards.
+    - name: Automotive Finance Integration
+      description: >-
+        API capabilities for automotive dealers and OEM finance platforms to access
+        Ally's automotive lending products, dealer management system integrations,
+        and floor plan financing.
+    - name: Corporate Finance API
+      description: >-
+        Treasury management and corporate banking APIs for Ally's commercial and
+        corporate finance clients to access account balances, payments, and reporting.
+    - name: Dealer Management Integration
+      description: >-
+        API integration with dealer management systems for Ally's automotive
+        dealer network covering vehicle financing, floorplan, and insurance products.
+- type: UseCases
+  data:
+    - name: Fintech Account Aggregation
+      description: >-
+        Consumer-permissioned data sharing with fintech apps like Mint, YNAB,
+        and personal finance tools via open banking aggregators (Plaid, MX, Finicity).
+    - name: Automotive Dealer Integration
+      description: >-
+        Dealership management system connectivity for Ally automotive finance
+        products including retail lending, leasing, and commercial lines of credit.
+    - name: Treasury Management
+      description: >-
+        Corporate client API access for account management, payment initiation,
+        and cash position reporting via Ally's commercial banking platform.
+- type: Integrations
+  data:
+    - name: Plaid
+      description: >-
+        Account connectivity and transaction data access through Plaid's
+        open banking network for consumer-permissioned fintech applications.
+    - name: MX Technologies
+      description: >-
+        Financial data aggregation and account verification through MX
+        for personal finance and wealth management applications.
+    - name: Dealer Management Systems
+      description: >-
+        Integration with dealership management software for automotive
+        finance workflow automation and dealer portal connectivity.
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
