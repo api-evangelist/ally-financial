@@ -89,6 +89,10 @@ apis:
   - type: Documentation
     url: https://www.ally.com/api/invest/documentation/getting-started/
 common:
+- type: Support
+  url: https://www.ally.com/help/
+- type: PrivacyPolicy
+  url: https://www.ally.com/privacy/
 - type: Website
   url: https://www.ally.com/
 - type: DomainSecurity
