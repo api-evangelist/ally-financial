@@ -14,6 +14,7 @@ description: >-
   (Plaid and Flinks are documented), and the legacy Ally Invest brokerage REST
   API (inherited from the 2016 TradeKing acquisition) has effectively been
   retired as Ally Invest shifted toward managed and robo portfolios.
+specificationVersion: '0.23'
 deliveryModel:
   model: unknown
   open_source: false
