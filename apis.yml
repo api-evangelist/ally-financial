@@ -71,8 +71,6 @@ apis:
   - United States
   - Conceptual
   properties:
-  - type: GraphQL
-    url: graphql/ally-financial-graphql.md
 - name: Ally Invest API (Legacy / Retired)
   description: >-
     The legacy Ally Invest brokerage REST API, inherited from Ally's 2016
